@@ -2,12 +2,12 @@
 V/ARA (Virtual/ Augmented Reality Arm) project created by Brainstorm team with Lviv IT cluster support at second course.
 
 AUTHOR/LICENSE:
-Created by Dmytro Petrenko - skiff120@gmail.com
+Created by Dmytro Petrenko - skiff120@gmail.com 
 Copyright 2016 License: GNU GPL v3 http://www.gnu.org/licenses/gpl.html
 
 LINKS:
-Github: https://github.com/skiffich/V-ARA
-Executive: 
+Github: https://github.com/skiffich/V-ARA 
+Executive: https://1drv.ms/u/s!ApAsseJ88mCxgvtCNG-MJeW5dihoWg
 
 DISCLAIMER:
 This software is furnished "as is", without technical support, and with no  warranty, express or implied, as to its usefulness for any purpose.
