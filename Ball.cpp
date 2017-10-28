@@ -46,7 +46,7 @@ void Ball::collide() {
 			(*others)[i].vy += ay;
 
 			if (id > 4)
-				if (vx + vy < (*others)[i].vx + (*others)[i].vy)
+				if (abs(vx) + abs(vy) > abs((*others)[i].vx) + abs((*others)[i].vy))
 					(*others)[i].color = color;
 				else
 					color = (*others)[i].color;

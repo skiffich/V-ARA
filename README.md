@@ -1,4 +1,4 @@
-# V-ARA
+# V/ARA
 V/ARA (Virtual/ Augmented Reality Arm) project created by Brainstorm team with Lviv IT cluster support at second course.
 
 AUTHOR/LICENSE:
