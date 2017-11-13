@@ -24,6 +24,8 @@ float altitude;
 int pot1;
 int pot2;
 int pot3;
+int mapPot1, mapPot2, mapPot3;
+int minAX = 0, maxAX = 0, minAY = 0, maxAY = 0, minAZ = 0, maxAZ = 0; 
 float K = 0.01;
 int32_t lastMicros;
 
@@ -73,7 +75,7 @@ void loop() {
     digitalWrite(LED_PIN, blinkState);
     
     // delay 100 msec to allow visually parsing blink and any serial output
-    delay(10);
+    //delay(10);
 }
 
 void accelerometer(){
@@ -93,10 +95,31 @@ void gyroscope(){
     pot1 = (1 - K) * pot1 + K * avx;
     pot2 = (1 - K) * pot2 + K * avy;
     pot3 = (1 - K) * pot3 + K * avz;
-    Serial.print("angular velocity:\t");
-    Serial.print(pot1); Serial.print("\t");
-    Serial.print(pot2); Serial.print("\t");
-    Serial.println(pot3);  
+    
+//Визначення мінімального та максимального значень акселерометра
+    
+    if(pot1 > maxAX) maxAX = pot1; 
+    if(pot2 > maxAY) maxAY = pot2; 
+    if(pot3 > maxAZ) maxAZ = pot3; 
+    
+    if(pot1 < minAX) minAX = pot1; 
+    if(pot2 < minAY) minAY = pot2; 
+    if(pot3 < minAZ) minAZ = pot3; 
+
+//--------------------------------------------------------------
+    
+    Serial.print("maxAX/minAX: \t"); Serial.print(maxAX);Serial.print(" / ");
+    Serial.print(minAX); Serial.println("\t");
+   // Serial.println();
+    
+    Serial.print("maxAY/minAY: \t"); Serial.print(maxAY);Serial.print(" / ");
+    Serial.print(minAY); Serial.println("\t");
+   // Serial.println();
+    
+    Serial.print("maxAZ/minAZ: \t"); Serial.print(maxAZ);Serial.print(" / ");
+    Serial.print(minAZ); Serial.println("\t");
+   / Serial.println();
+  
 }
 
 void barometer(){
