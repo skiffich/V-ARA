@@ -25,7 +25,6 @@ int pot1;
 int pot2;
 int pot3;
 int mapPot1, mapPot2, mapPot3;
-int minAX = 0, maxAX = 0, minAY = 0, maxAY = 0, minAZ = 0, maxAZ = 0; 
 float K = 0.01;
 int32_t lastMicros;
 
@@ -96,30 +95,22 @@ void gyroscope(){
     pot2 = (1 - K) * pot2 + K * avy;
     pot3 = (1 - K) * pot3 + K * avz;
     
-//Визначення мінімального та максимального значень акселерометра
+    if(pot1 > 0)mapPot1 = map(pot1, 0, 5776, 0, 100);
+    if(pot2 > 0)mapPot2 = map(pot2, 0, 3651, 0, 100);
+    if(pot3 > 0)mapPot3 = map(pot3, 0, 5233, 0, 100);
     
-    if(pot1 > maxAX) maxAX = pot1; 
-    if(pot2 > maxAY) maxAY = pot2; 
-    if(pot3 > maxAZ) maxAZ = pot3; 
+    if(pot1 < 0)mapPot1 = map(pot1, 0, -5092, 0, -100);
+    if(pot2 < 0)mapPot2 = map(pot2, 0, -5509, 0, -100);
+    if(pot3 < 0)mapPot3 = map(pot3, 0, -4779, 0, -100);
     
-    if(pot1 < minAX) minAX = pot1; 
-    if(pot2 < minAY) minAY = pot2; 
-    if(pot3 < minAZ) minAZ = pot3; 
-
-//--------------------------------------------------------------
-    
-    Serial.print("maxAX/minAX: \t"); Serial.print(maxAX);Serial.print(" / ");
-    Serial.print(minAX); Serial.println("\t");
-   // Serial.println();
-    
-    Serial.print("maxAY/minAY: \t"); Serial.print(maxAY);Serial.print(" / ");
-    Serial.print(minAY); Serial.println("\t");
-   // Serial.println();
-    
-    Serial.print("maxAZ/minAZ: \t"); Serial.print(maxAZ);Serial.print(" / ");
-    Serial.print(minAZ); Serial.println("\t");
-   / Serial.println();
-  
+    Serial.print("X: \t");
+    Serial.print(mapPot1); Serial.println("\t");
+    Serial.print("Y: \t");
+    Serial.print(mapPot2); Serial.println("\t");
+    Serial.print("Z: \t");
+    Serial.print(mapPot3); Serial.println("\t");
+    Serial.println();
+   
 }
 
 void barometer(){
