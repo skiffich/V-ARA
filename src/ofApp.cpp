@@ -2,7 +2,21 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	// Hide console v1
+	FreeConsole();
+
 	font.load("Pacifico.ttf", 18);
+
+	try
+	{
+		ard.connect("COM4", 57600);
+		ofAddListener(ard.EStringReceived, this, &ofApp::stringReceived);
+		isConnected = true;
+	}
+	catch(...)
+	{
+		isConnected = false;
+	}
 
 	srand(time(NULL));
 	// Random player color
@@ -22,6 +36,8 @@ void ofApp::setup(){
 		balls.push_back(Ball(rand() % ofGetWindowWidth(), rand() % ofGetWindowHeight(), rand() % 40 + 30, balls.size(), &balls, color4));
 		break;
 	}
+	balls[0].x = 100;
+	balls[0].y = 100;
 	
 	balls.push_back(Ball(rand() % ofGetWindowWidth(), rand() % ofGetWindowHeight(), rand() % 40 + 30, balls.size(), &balls, ofColor::black));
 	balls.push_back(Ball(rand() % ofGetWindowWidth(), rand() % ofGetWindowHeight(), rand() % 40 + 30, balls.size(), &balls, ofColor::black));
@@ -46,11 +62,39 @@ void ofApp::setup(){
 	//*/
 }
 
+void ofApp::stringReceived(const string & string) {
+
+	char sXacc[3];
+	sXacc[0] = string[1];
+	sXacc[1] = string[2];
+	sXacc[2] = string[3];
+	rX = atoi(sXacc);
+
+	char sYacc[3];
+	sYacc[0] = string[5];
+	sYacc[1] = string[6];
+	sYacc[2] = string[7];
+	rY = atoi(sYacc);
+
+	balls[0].x += rX;
+	balls[0].y += rY;
+}
+
 //--------------------------------------------------------------
 void ofApp::update(){
 	for (int i = 5; i < balls.size(); i++) {
 		if (balls[i].color != balls[0].color)break;
 		else if (i == balls.size() - 1 && !updated) { score++; updated = true; }
+	}
+
+	if (isConnected && ard.isArduinoReady()) {
+		try { ard.update(); }
+		catch (...) { isConnected = false; }
+	}
+	else
+	{
+		balls[0].x = dX;
+		balls[0].y = dY;
 	}
 }
 
@@ -86,20 +130,20 @@ void ofApp::keyReleased(int key){
 
 //--------------------------------------------------------------
 void ofApp::mouseMoved(int x, int y ){
-	balls[0].x = x;
-	balls[0].y = y;
+	dX = x;
+	dY = y;
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-	balls[0].x = x;
-	balls[0].y = y;
+	dX = x;
+	dY = y;
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-	balls[0].x = x;
-	balls[0].y = y;
+	dX = x;
+	dY = y;
 
 	// Return the original colors
 	updated = false;
@@ -134,8 +178,8 @@ void ofApp::mousePressed(int x, int y, int button){
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button){
-	balls[0].x = x;
-	balls[0].y = y;
+	dX = x;
+	dY = y;
 }
 
 //--------------------------------------------------------------

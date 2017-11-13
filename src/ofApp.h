@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "ofEvents.h"
 #include "../Ball.h"
 
 class ofApp : public ofBaseApp{
@@ -31,9 +32,17 @@ class ofApp : public ofBaseApp{
 
 		vector<Ball> balls;
 
+		int dX = 0, dY = 0;
+
 		// number of wins
 		int score = 0;
 		bool updated = false;
 		ofTrueTypeFont	font;
 		
+
+		// Firmata Arduino protocol
+		ofArduino	ard;
+		void stringReceived(const string & string);
+		int rX = 0, rY = 0;
+		bool isConnected = false;
 };
