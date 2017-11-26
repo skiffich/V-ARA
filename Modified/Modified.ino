@@ -1,6 +1,6 @@
 #include "Tensor.h"
-Tensor tensor1(0/*, 'G'*/);
-
+Tensor tensor1(0, "G");
+Tensor tensor2(1, "H");
 
 void setup()
 {
@@ -9,15 +9,12 @@ void setup()
 
 void loop()
 {
-  Serial.print(tensor1.DRead());
-  Serial.print(" ");
-  Serial.print(tensor1.Dmax());
-  Serial.print(" ");
-  Serial.print(tensor1.Dmin());
-  Serial.print(" ");
-  Serial.print(tensor1.TensorRead());
-  Serial.println(" ");
-  /*String string = "";
-  string += String(tensor1.TensorRead());
-  Serial.println(string);*/
+  //tensor2.tensorRead();
+  Serial.print(tensor1.tensorRead());
+  //Serial.print(analogRead(0));
+  Serial.print("\t"); 
+
+  Serial.println(tensor2.tensorRead());
+  //Serial.println(analogRead(1));
 }
+
