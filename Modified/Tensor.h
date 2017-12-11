@@ -5,20 +5,14 @@
 
 class Tensor {
 public:
-  float sum = 0;
-  int sumCount = 0;
-  int avg = 0;
-  Tensor(int pin);
+  Tensor(int pin, String letter);
   ~Tensor();
-  int TensorRead();
-  int Sum();
-  int Dmax();
-  int Dmin();
-  int DRead();
+  String tensorRead();
 private:
-  int minValue, maxValue, pin;
-  int TensorCalib(int x);
-  int Read;
+  int tensorCalib(int input);
+  String str, letter;
+  int pin, input_c, avgMin, avgMax, sumMin, sumMax, counterMin, counterMax;
 };
 
 #endif
+
