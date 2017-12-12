@@ -1,27 +1,35 @@
-#ifndef AccGyro_h
-#define AccGyro_h
+#ifndef IMU_h
+#define IMU_h
 
 #include <Arduino.h>
 
 #include <Wire.h>
 #include <L3G4200D.h>
 #include <ADXL345.h>
+#include <HMC5883L.h>
 #include <KalmanFilter.h>
 
-class AccGyro {
+class IMU {
 public:
-  AccGyro();
-  ~AccGyro();
+  IMU();
+  ~IMU();
   String str;
-  void accGyroLoop();
-  void accGyroInit();
+  void imuLoop();
+  void imuInit();
   
 private:
   L3G4200D gyroscope;
   ADXL345 accelerometer;
+  HMC5883L compass;
   
   KalmanFilter kalmanX;
   KalmanFilter kalmanY;
+
+  // Tilt compensation
+  float tiltCompensate(Vector mag, Vector normAccel);
+  float tiltCompensate(Vector mag, float _pitch, float _roll);
+  // Correct angle
+  float correctAngle(float _heading);
 
   float accPitch;
   float accRoll;
@@ -35,13 +43,15 @@ private:
   
   float yaw;
 
+  int iAccX;
+  int iAccY;
+  int iAccZ;
+
   int iKalPitch;
   int iKalRoll;
   int iMagYaw;
 
-  int iAccX = 0;
-  int iAccY = 0;
-  int iAccZ = 0;
+  float heading;
 };
 
 #endif

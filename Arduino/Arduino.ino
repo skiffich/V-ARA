@@ -1,16 +1,16 @@
-#include "AccGyro.h"
+#include "IMU.h"
 
-AccGyro accGyro;
+IMU imu;
 
 void setup() {
   // put your setup code here, to run once:
-  accGyro.accGyroInit();
+  imu.imuInit();
 
   Serial.begin(9600);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  accGyro.accGyroLoop();
-  Serial.println(accGyro.str);
+  imu.imuLoop();
+  Serial.println(imu.str);
 }
