@@ -14,6 +14,9 @@ AccGyro::AccGyro() {
   iAccX = 0;
   iAccY = 0;
   iAccZ = 0;
+  iKalPitch = 0;
+  iKalRoll = 0;
+  iMagYaw = 0;
 }
 
 AccGyro::~AccGyro(){}
@@ -50,44 +53,48 @@ void AccGyro::accGyroLoop(){
 
   yaw = yaw + gyr.ZAxis * timeStep;
 
-  int iKalPitch = int(kalPitch);  if(iKalPitch > 99) iKalPitch=99;if(iKalPitch < -99) iKalPitch=-99;
-  int iKalRoll  = int(kalRoll);   if(iKalRoll > 99) iKalRoll=99;  if(iKalRoll < -99) iKalRoll=-99;
-  int iKalYaw   = int(yaw);       if(iKalYaw > 99) iKalYaw=99;    if(iKalYaw < -99) iKalYaw=-99;
+  // Formatting Gyro data
+  iKalPitch = int(kalPitch);  if(iKalPitch > 180) iKalPitch=180;  if(iKalPitch < -180) iKalPitch=-180;
+  iKalRoll  = int(kalRoll);   if(iKalRoll > 180) iKalRoll=180;    if(iKalRoll < -9180) iKalRoll=-180;
+  iMagYaw   = int(yaw);       //if(iMagYaw<0) iMagYaw %= -360;    if(iMagYaw>0) iMagYaw %= 360;
 
-  iAccX = int(accelerometer.XAxis);
-  iAccY = int(accelerometer.YAxis);
-  iAccZ = int(accelerometer.ZAxis);
+  // Formatting Acc data
+  iAccX = int(acc.XAxis); if(iAccX > 99) iAccX=99;  if(iAccX < -99) iAccX=-99;
+  iAccY = int(acc.YAxis); if(iAccY > 99) iAccY=99;  if(iAccY < -99) iAccY=-99;
+  iAccZ = int(acc.ZAxis); if(iAccZ > 99) iAccZ=99;  if(iAccZ < -99) iAccZ=-99;
+  // Gravity delete
+  //if(iAccX<=10 && iAccX>=-10)iAccX=0; if(iAccY<=10 && iAccY>=-10)iAccY=0; if(iAccZ<=10 && iAccZ>=-10)iAccZ=0;
 
-  str += "A";
-  if(iAccX<0)str+="-";else str+="0"
-  if(iAccX<100)str+="0";
-  str+=iAccX;
+  str = "A";
+  if(iAccX<0)str+="-";else str+="0";
+  if(iAccX<10 && iAccX>-10)str+="0";
+  str+=abs(iAccX);
 
   str += "B";
-  if(iAccY<0)str+="-";else str+="0"
-  if(iAccY<100)str+="0";
-  str+=iAccY;
+  if(iAccY<0)str+="-";else str+="0";
+  if(iAccY<10 && iAccY>-10)str+="0";
+  str+=abs(iAccY);
 
   str += "C";
-  if(iAccZ<0)str+="-";else str+="0"
-  if(iAccZ<100)str+="0";
-  str+=iAccZ;
+  if(iAccZ<0)str+="-";else str+="0";
+  if(iAccZ<10 && iAccZ>-10)str+="0";
+  str+=abs(iAccZ);
 
   str += "D";
-  if(iKalPitch<0)str+="-";else str+="0"
-  if(iKalPitch<10)str+="00";
-  if(iKalPitch<100)str+="0";
-  str+=iKalPitch;
+  if(iKalPitch<0)str+="-";else str+="0";
+  if(iKalPitch<100 && iKalPitch>-100)str+="0";
+  if(iKalPitch<10  && iKalPitch>-10)str+="0";
+  str+=abs(iKalPitch);
 
   str += "E";
-  if(iKalRoll<0)str+="-";else str+="0"
-  if(iKalRoll<10)str+="00";
-  if(iKalRoll<100)str+="0";
-  str+=iKalRoll;
+  if(iKalRoll<0)str+="-";else str+="0";
+  if(iKalRoll<100 && iKalRoll>-100)str+="0";
+  if(iKalRoll<10  && iKalRoll>-10)str+="0";
+  str+=abs(iKalRoll);
 
   str += "F";
-  if(iKalPitch<0)str+="-";else str+="0"
-  if(iKalYaw<10)str+="00";
-  if(iKalYaw<100)str+="0";
-  str+=iKalYaw;
+  if(iMagYaw<0)str+="-";else str+="0";
+  if(iMagYaw<100 && iMagYaw>-100)str+="0";
+  if(iMagYaw<10  && iMagYaw>-10)str+="0";
+  str+=abs(iMagYaw);
 }

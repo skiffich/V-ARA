@@ -35,6 +35,10 @@ private:
   
   float yaw;
 
+  int iKalPitch;
+  int iKalRoll;
+  int iMagYaw;
+
   int iAccX = 0;
   int iAccY = 0;
   int iAccZ = 0;
