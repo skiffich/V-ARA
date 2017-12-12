@@ -6,6 +6,7 @@
 #include <Wire.h>
 #include <L3G4200D.h>
 #include <ADXL345.h>
+#include <HMC5883L.h>
 #include <KalmanFilter.h>
 
 class AccGyro {
@@ -19,9 +20,15 @@ public:
 private:
   L3G4200D gyroscope;
   ADXL345 accelerometer;
+  HMC5883L compass;
   
   KalmanFilter kalmanX;
   KalmanFilter kalmanY;
+
+  // Tilt compensation
+  float tiltCompensate(Vector mag, Vector normAccel);
+  // Correct angle
+  float correctAngle(float _heading);
 
   float accPitch;
   float accRoll;
@@ -35,9 +42,15 @@ private:
   
   float yaw;
 
-  int iAccX = 0;
-  int iAccY = 0;
-  int iAccZ = 0;
+  int iAccX;
+  int iAccY;
+  int iAccZ;
+
+  int iKalPitch;
+  int iKalRoll;
+  int iKalYaw;
+
+  float heading;
 };
 
 #endif
