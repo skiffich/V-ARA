@@ -54,6 +54,10 @@ void AccGyro::accGyroLoop(){
   int iKalRoll  = int(kalRoll);   if(iKalRoll > 99) iKalRoll=99;  if(iKalRoll < -99) iKalRoll=-99;
   int iKalYaw   = int(yaw);       if(iKalYaw > 99) iKalYaw=99;    if(iKalYaw < -99) iKalYaw=-99;
 
+  iAccX = int(accelerometer.XAxis);
+  iAccY = int(accelerometer.YAxis);
+  iAccZ = int(accelerometer.ZAxis);
+
   str += "A";
   if(iAccX<0)str+="-";else str+="0"
   if(iAccX<100)str+="0";
