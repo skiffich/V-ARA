@@ -19,6 +19,7 @@ void setup()
   Firmata.setFirmwareVersion(FIRMATA_FIRMWARE_MAJOR_VERSION, FIRMATA_FIRMWARE_MINOR_VERSION);
   Firmata.attach(STRING_DATA, stringCallback); // Add String received handler
   Firmata.begin(57600); // Start Firmata with 57600 baud rate
+  while (!Serial) ;
 }
 
 void loop()
@@ -27,5 +28,9 @@ void loop()
   while (Firmata.available()) {
     Firmata.processInput();
   }
+
+#ifdef FIRMATA_SERIAL_FEATURE
+  serialFeature.update();
+#endif
 }
 

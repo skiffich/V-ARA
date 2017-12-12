@@ -1,8 +1,8 @@
 #include "ofApp.h"
 
-// 12/12/17
+// 13/12/17
 // Receive string from Arduino and convert string to float values
-// Arduino connected to COM5 with baud rate 57600
+// Arduino connected to any COM port with baud rate 57600
 // Arduino sends string using Firmata protocol when
 // it receives "N" string using Firmata protocol
 // Because when arduino will send string continuously,
@@ -33,8 +33,7 @@
 * " 1   5   9   13   18   23   28 31 34 37 "     // positions
 * "A099B001C-15D0179E-179F0025G01H99I38J65K"     // example
 */
-// Errors & Exceptions:
-/*
+/* Errors & Exceptions:
 * 1 (Solved)
 * Strange Exception in runtime caused by unknown what by and unknown where
 * Exception: "vector iterator not dereferencable"
@@ -46,8 +45,31 @@
 void ofApp::setup(){
 	// Set background to black
 	ofBackground(0);
-	// Connect to arduino on COM5 with baud rate 57600
-	ard.connect("COM5", 57600);
+	// Connect to arduino connected to any COM port with baud rate 57600
+	try
+	{
+		ofSerial serial;
+		vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
+		for each (ofSerialDeviceInfo var in deviceList)
+		{
+			ofLogNotice() << "Connecting to " << var.getDeviceName();
+			ard.connect(var.getDeviceName(), 57600);
+			if (ard.isArduinoReady())
+			{
+				ofAddListener(ard.EStringReceived, this, &ofApp::stringReceived);
+				ofLogNotice() << "Connected to Arduino on " << var.getDeviceName();
+				ofLogNotice() << "Setup...";
+				ofLogNotice() << ard.getFirmwareName();
+				ofLogNotice() << "firmata v" << ard.getMajorFirmwareVersion() << "." << ard.getMinorFirmwareVersion();
+				bSetupArduino = true;
+				break;
+			}
+		}
+	}
+	catch (...)
+	{
+		ofLogError() << "Connecting failed";
+	}
 	// String received handler connection
 	ofAddListener(ard.EStringReceived, this, &ofApp::stringReceived);
 	// Setup clock_start
@@ -110,7 +132,7 @@ void ofApp::update(){
 	// Calculate current clocks interval
 	double cur_clock = double(clock() - clock_start) / CLOCKS_PER_SEC;
 	// Update arduino if duration has been more than 0.05 seconds
-	if (cur_clock > 0.05) {
+	if (cur_clock > 0.05 && bSetupArduino) {
 		// reset clock_start
 		clock_start = clock();
 		// Send "N" to arduino

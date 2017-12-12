@@ -28,6 +28,7 @@ private:
 	void stringReceived(const string & string);
 	// Delay between transactions to arduino
 	clock_t clock_start;
+	bool	bSetupArduino = false;
 
 	// Received data
 	float	xAcc = 0,
