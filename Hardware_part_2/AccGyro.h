@@ -34,6 +34,10 @@ private:
   float timeStep;
   
   float yaw;
+
+  int iAccX = 0;
+  int iAccY = 0;
+  int iAccZ = 0;
 };
 
 #endif
