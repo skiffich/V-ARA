@@ -124,7 +124,37 @@ void ofApp::update(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+	ofPushMatrix();
 
+	// Set a start point in the center of the screen
+	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 40);
+
+	// Rotate to the angle obtained from the gyroscope
+	ofRotateX(xGyr);
+	ofRotateY(yGyr);
+	ofRotateZ(zGyr);
+
+	ofPushMatrix();
+
+	// Rotate to the angle specified by the user
+	ofVec3f axis;
+	float angle;
+	curRot.getRotate(angle, axis);
+	ofRotate(angle, axis.x, axis.y, axis.z);
+
+	// Draw coordinate system
+	ofSetColor(ofColor::red);
+	ofDrawLine(0, 0, 0, 100, 0, 0);
+	ofSetColor(ofColor::blue);
+	ofDrawLine(0, 0, 0, 0, 100, 0);
+	ofSetColor(ofColor::yellow);
+	ofDrawLine(0, 0, 0, 0, 0, 100);
+	// Draw gravity vector
+	ofSetColor(ofColor::green);
+	ofDrawLine(0, 0, 0, xAcc, yAcc, zAcc);
+
+	ofPopMatrix();
+	ofPopMatrix();
 }
 
 //--------------------------------------------------------------
@@ -144,12 +174,18 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button){
-
+	if (button == 2) {
+		ofVec2f mouse(x, y);
+		ofQuaternion yRot((x - lastMouse.x)*dampen, ofVec3f(0, 1, 0));
+		ofQuaternion xRot((y - lastMouse.y)*dampen, ofVec3f(-1, 0, 0));
+		curRot *= yRot*xRot;
+		lastMouse = mouse;
+	}
 }
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button){
-	
+	lastMouse = ofVec2f(x, y);
 }
 
 //--------------------------------------------------------------
