@@ -92,12 +92,15 @@ void ofApp::convertReceivedString2ReceivedData(const string string)
 	std::string sAccX = received.substr(1, 3);
 	stringstream sAccXstream(sAccX);
 	sAccXstream >> xAcc;
+	xAcc *= 5;
 	std::string sAccY = received.substr(5, 3);
 	stringstream sAccYstream(sAccY);
 	sAccYstream >> yAcc;
+	yAcc *= 5;
 	std::string sAccZ = received.substr(9, 3);
 	stringstream sAccZstream(sAccZ);
 	sAccZstream >> zAcc;
+	zAcc *= 5;
 	// Convert gyroscope values
 	std::string sGyrX = received.substr(13, 4);
 	stringstream sGyrXstream(sGyrX);
