@@ -10,11 +10,7 @@
 //
 // Load to arduino sketch Arduino.ino from Arduino folder
 /*
-* Arduino-Tensoresistors-IMU-Unity3D uniting sketch
 *
-* Change the string to your values in TODO
-* Note, you can not change a size of string or position of your value
-* just paste it into a place acording to template
 * Tr1-5 values must be in range from 00 to 99
 * X-Zacc values must be in range from 000 to -99/099 and first mark must be or '0' or '-' if value is less then 0
 * X-Zgyr values must be in range from 0000 to -180/0180 and first mark must be or '0' or '-' if value is less then 0
@@ -36,6 +32,12 @@
 * "A000B000C000D0000E0000F0000G00H00I00J00K"     // template
 * " 1   5   9   13   18   23   28 31 34 37 "     // positions
 * "A099B001C-15D0179E-179F0025G01H99I38J65K"     // example
+*/
+// Errors & Exceptions:
+/*
+* Strange Exception in runtime caused by unknown what by and unknown where
+* Exception: "vector iterator not dereferencable"
+* Probably the reason is the non-sync threads in  "stringReceived" and "update"
 */
 
 //--------------------------------------------------------------
