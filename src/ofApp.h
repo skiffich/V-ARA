@@ -25,5 +25,17 @@ class ofApp : public ofBaseApp{
 		// Arduino Firmata protocol worker
 		ofArduino	ard;
 		void stringReceived(const string & string);
+
+		float	xAcc = 0,
+				yAcc = 0,
+				zAcc = 0,
+				xGyr = 0,
+				yGyr = 0,
+				zGyr = 0,
+				ten1 = 0,
+				ten2 = 0,
+				ten3 = 0,
+				ten4 = 0;
+		string received = "A000B000C000D0000E0000F0000G00H00I00J00K";
 		
 };
