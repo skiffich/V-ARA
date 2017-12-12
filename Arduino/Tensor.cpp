@@ -11,11 +11,7 @@ Tensor::Tensor(int pin, String letter) {
 Tensor::~Tensor(){}
 
 int Tensor::tensorCalib(int input){
-
-String s;
-  //s += "i ";s += input;s += "\tcMin ";s += counterMin;s += "\tcMax ";s += counterMax;s += "\tsMin ";s += sumMin;s += "\tsMax ";s += sumMax;s += "\taMin ";s += avgMin;s += "\taMax ";s += avgMax;s += "\tcal ";
-  //Serial.print(s);
-  
+    
   if(input < avgMin - (avgMin / 30) && input > 300) {
     counterMin++;
     sumMin += input;
@@ -45,8 +41,6 @@ String s;
     input = 0;
   }
 
-
-  //Serial.println(input);
   return input;
 }
 
