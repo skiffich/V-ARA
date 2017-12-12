@@ -35,17 +35,23 @@
 */
 // Errors & Exceptions:
 /*
+* 1 (Solved)
 * Strange Exception in runtime caused by unknown what by and unknown where
 * Exception: "vector iterator not dereferencable"
 * Probably the reason is the non-sync threads in  "stringReceived" and "update"
+* Result: I think it is fixed with adding delay between transactions to Arduino
 */
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	// Set background to black
+	ofBackground(0);
 	// Connect to arduino on COM5 with baud rate 57600
 	ard.connect("COM5", 57600);
 	// String received handler connection
 	ofAddListener(ard.EStringReceived, this, &ofApp::stringReceived);
+	// Setup clock_start
+	clock_start = clock();
 }
 
 //--------------------------------------------------------------
@@ -53,58 +59,66 @@ void ofApp::setup(){
 void ofApp::stringReceived(const string & string) {
 	// save received string
 	received = string;
+	// Apdate arduino
+	ard.update();
+}
+
+// Convert received string to received data
+void ofApp::convertReceivedString2ReceivedData(const string string)
+{
+	// Convert accelerometer values
+	std::string sAccX = received.substr(1, 3);
+	stringstream sAccXstream(sAccX);
+	sAccXstream >> xAcc;
+	std::string sAccY = received.substr(5, 3);
+	stringstream sAccYstream(sAccY);
+	sAccYstream >> yAcc;
+	std::string sAccZ = received.substr(9, 3);
+	stringstream sAccZstream(sAccZ);
+	sAccZstream >> zAcc;
+	// Convert gyroscope values
+	std::string sGyrX = received.substr(13, 4);
+	stringstream sGyrXstream(sGyrX);
+	sGyrXstream >> xGyr;
+	std::string sGyrY = received.substr(18, 4);
+	stringstream sGyrYstream(sGyrY);
+	sGyrYstream >> yGyr;
+	std::string sGyrZ = received.substr(23, 4);
+	stringstream sGyrZstream(sGyrZ);
+	sGyrZstream >> zGyr;
+	// Convert tensoresistors values
+	std::string sTen1 = received.substr(28, 2);
+	stringstream sTen1stream(sTen1);
+	sTen1stream >> ten1;
+	std::string sTen2 = received.substr(31, 2);
+	stringstream sTen2stream(sTen2);
+	sTen2stream >> ten2;
+	std::string sTen3 = received.substr(34, 2);
+	stringstream sTen3stream(sTen3);
+	sTen3stream >> ten3;
+	std::string sTen4 = received.substr(37, 2);
+	stringstream sTen4stream(sTen4);
+	sTen4stream >> ten4;
+	//* Show converted values
+	cout << xAcc << " " << yAcc << " " << zAcc << " " << xGyr << " " <<
+		yGyr << " " << zGyr << " " << ten1 << " " << ten2 << " " <<
+		ten3 << " " << ten4 << endl; //*/
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
-	try {
-		// Convert received string to floats
-		// Convert accelerometer values
-		std::string sAccX = received.substr(1, 3);
-		stringstream sAccXstream(sAccX);
-		sAccXstream >> xAcc;
-		std::string sAccY = received.substr(5, 3);
-		stringstream sAccYstream(sAccY);
-		sAccYstream >> yAcc;
-		std::string sAccZ = received.substr(9, 3);
-		stringstream sAccZstream(sAccZ);
-		sAccZstream >> zAcc;
-		// Convert gyroscope values
-		std::string sGyrX = received.substr(13, 4);
-		stringstream sGyrXstream(sGyrX);
-		sGyrXstream >> xGyr;
-		std::string sGyrY = received.substr(18, 4);
-		stringstream sGyrYstream(sGyrY);
-		sGyrYstream >> yGyr;
-		std::string sGyrZ = received.substr(23, 4);
-		stringstream sGyrZstream(sGyrZ);
-		sGyrZstream >> zGyr;
-		// Convert tensoresistors values
-		std::string sTen1 = received.substr(28, 2);
-		stringstream sTen1stream(sTen1);
-		sTen1stream >> ten1;
-		std::string sTen2 = received.substr(31, 2);
-		stringstream sTen2stream(sTen2);
-		sTen2stream >> ten2;
-		std::string sTen3 = received.substr(34, 2);
-		stringstream sTen3stream(sTen3);
-		sTen3stream >> ten3;
-		std::string sTen4 = received.substr(37, 2);
-		stringstream sTen4stream(sTen4);
-		sTen4stream >> ten4;
-		// Show converted values
-		cout << xAcc << " " << yAcc << " " << zAcc << " " << xGyr << " " <<
-				yGyr << " " << zGyr << " " << ten1 << " " << ten2 << " " <<
-				ten3 << " " << ten4 << endl;
-
+	// Calculate current clocks interval
+	double cur_clock = double(clock() - clock_start) / CLOCKS_PER_SEC;
+	// Update arduino if duration has been more than 0.05 seconds
+	if (cur_clock > 0.05) {
+		// reset clock_start
+		clock_start = clock();
 		// Send "N" to arduino
 		ard.sendString("N");
 		// Apdate arduino
 		ard.update();
-	}
-	catch (...)
-	{
-		// TO DO OR NOT TO DO
+		// Convert received string to received data
+		convertReceivedString2ReceivedData(received);
 	}
 }
 
