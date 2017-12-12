@@ -17,7 +17,7 @@ AccGyro::AccGyro() {
   heading = 0;
   iKalPitch = 0;
   iKalRoll = 0;
-  iKalYaw = 0;
+  iMagYaw = 0;
 }
 
 AccGyro::~AccGyro(){}
@@ -51,8 +51,6 @@ void AccGyro::accGyroInit(){
 
   // Set calibration offset. See HMC5883L_calibration.ino
   compass.setOffset(0, 0); 
-  
-  str = "";
 }
 
 
@@ -73,9 +71,10 @@ void AccGyro::accGyroLoop(){
 
   // Read yaw from gyro
   yaw = yaw + gyr.ZAxis * timeStep;
+  if(yaw > 360 || yaw < -360) yaw=.0;
 
   // Read magn data
-  heading = tiltCompensate(mag, acc);
+  heading = tiltCompensate(mag, kalPitch, kalRoll);
   // Set declination angle on your location and fix heading
   // You can find your declination on: http://magnetic-declination.com/
   // (+) Positive or (-) for negative
@@ -89,48 +88,51 @@ void AccGyro::accGyroLoop(){
   heading = heading * 180/M_PI;
 
   // Formatting Gyro data
-  iKalPitch = int(kalPitch);  if(iKalPitch > 180) iKalPitch=180;if(iKalPitch < -180) iKalPitch=-180;
-  iKalRoll  = int(kalRoll);   if(iKalRoll > 180) iKalRoll=180;  if(iKalRoll < -9180) iKalRoll=-180;
-  iKalYaw   = int(heading);       if(iKalYaw > 360) iKalYaw=360;    if(iKalYaw < -360) iKalYaw=-360;
+  iKalPitch = int(kalPitch);  if(iKalPitch > 180) iKalPitch=180;  if(iKalPitch < -180) iKalPitch=-180;
+  iKalRoll  = int(kalRoll);   if(iKalRoll > 180) iKalRoll=180;    if(iKalRoll < -9180) iKalRoll=-180;
+  iMagYaw   = int(yaw);       //if(iMagYaw<0) iMagYaw %= -360;    if(iMagYaw>0) iMagYaw %= 360;
 
   // Formatting Acc data
   iAccX = int(acc.XAxis); if(iAccX > 99) iAccX=99;  if(iAccX < -99) iAccX=-99;
   iAccY = int(acc.YAxis); if(iAccY > 99) iAccY=99;  if(iAccY < -99) iAccY=-99;
-  iAccY = int(acc.ZAxis); if(iAccY > 99) iAccY=99;  if(iAccY < -99) iAccY=-99;
+  iAccZ = int(acc.ZAxis); if(iAccZ > 99) iAccZ=99;  if(iAccZ < -99) iAccZ=-99;
+  // Gravity delete
+  //if(iAccX<=10 && iAccX>=-10)iAccX=0; if(iAccY<=10 && iAccY>=-10)iAccY=0; if(iAccZ<=10 && iAccZ>=-10)iAccZ=0;
+
 
   // Create string
-  str += "A";
+  str = "A";
   if(iAccX<0)str+="-";else str+="0";
-  if(iAccX<100)str+="0";
-  str+=iAccX;
+  if(iAccX<10 && iAccX>-10)str+="0";
+  str+=abs(iAccX);
 
   str += "B";
   if(iAccY<0)str+="-";else str+="0";
-  if(iAccY<100)str+="0";
-  str+=iAccY;
+  if(iAccY<10 && iAccY>-10)str+="0";
+  str+=abs(iAccY);
 
   str += "C";
   if(iAccZ<0)str+="-";else str+="0";
-  if(iAccZ<100)str+="0";
-  str+=iAccZ;
+  if(iAccZ<10 && iAccZ>-10)str+="0";
+  str+=abs(iAccZ);
 
   str += "D";
   if(iKalPitch<0)str+="-";else str+="0";
-  if(iKalPitch<10)str+="00";
-  if(iKalPitch<100)str+="0";
-  str+=iKalPitch;
+  if(iKalPitch<100 && iKalPitch>-100)str+="0";
+  if(iKalPitch<10  && iKalPitch>-10)str+="0";
+  str+=abs(iKalPitch);
 
   str += "E";
   if(iKalRoll<0)str+="-";else str+="0";
-  if(iKalRoll<10)str+="00";
-  if(iKalRoll<100)str+="0";
-  str+=iKalRoll;
+  if(iKalRoll<100 && iKalRoll>-100)str+="0";
+  if(iKalRoll<10  && iKalRoll>-10)str+="0";
+  str+=abs(iKalRoll);
 
   str += "F";
-  if(iKalPitch<0)str+="-";else str+="0";
-  if(iKalYaw<10)str+="00";
-  if(iKalYaw<100)str+="0";
-  str+=iKalYaw;
+  if(iMagYaw<0)str+="-";else str+="0";
+  if(iMagYaw<100 && iMagYaw>-100)str+="0";
+  if(iMagYaw<10  && iMagYaw>-10)str+="0";
+  str+=abs(iMagYaw);
 }
 
 float AccGyro::tiltCompensate(Vector mag, Vector normAccel){
@@ -141,6 +143,35 @@ float AccGyro::tiltCompensate(Vector mag, Vector normAccel){
 
   roll = asin(normAccel.YAxis);
   pitch = asin(-normAccel.XAxis);
+
+  if (roll > 0.78 || roll < -0.78 || pitch > 0.78 || pitch < -0.78)
+  {
+    return -1000;
+  }
+
+  // Some of these are used twice, so rather than computing them twice in the algorithem we precompute them before hand.
+  float cosRoll = cos(roll);
+  float sinRoll = sin(roll);  
+  float cosPitch = cos(pitch);
+  float sinPitch = sin(pitch);
+
+  // Tilt compensation
+  float Xh = mag.XAxis * cosPitch + mag.ZAxis * sinPitch;
+  float Yh = mag.XAxis * sinRoll * sinPitch + mag.YAxis * cosRoll - mag.ZAxis * sinRoll * cosPitch;
+
+  float heading = atan2(Yh, Xh);
+
+  return heading;
+}
+
+float AccGyro::tiltCompensate(Vector mag, float _pitch, float _roll){
+  // Pitch & Roll 
+
+  float roll;
+  float pitch;
+
+  roll = asin(_roll);
+  pitch = asin(-_pitch);
 
   if (roll > 0.78 || roll < -0.78 || pitch > 0.78 || pitch < -0.78)
   {

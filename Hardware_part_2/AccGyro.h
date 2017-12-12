@@ -27,6 +27,7 @@ private:
 
   // Tilt compensation
   float tiltCompensate(Vector mag, Vector normAccel);
+  float tiltCompensate(Vector mag, float _pitch, float _roll);
   // Correct angle
   float correctAngle(float _heading);
 
@@ -48,7 +49,7 @@ private:
 
   int iKalPitch;
   int iKalRoll;
-  int iKalYaw;
+  int iMagYaw;
 
   float heading;
 };
