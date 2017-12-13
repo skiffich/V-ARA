@@ -1,6 +1,6 @@
-#include "AccGyro.h"
+#include "IMU.h"
 
-AccGyro::AccGyro() {
+IMU::IMU() {
   kalmanX = KalmanFilter(0.001, 0.003, 0.03);
   kalmanY = KalmanFilter(0.001, 0.003, 0.03);
 
@@ -20,9 +20,9 @@ AccGyro::AccGyro() {
   iMagYaw = 0;
 }
 
-AccGyro::~AccGyro(){}
+IMU::~IMU(){}
 
-void AccGyro::accGyroInit(){
+void IMU::imuInit(){
   // Initialize ADXL345
   while(!accelerometer.begin()) delay(500);
  
@@ -54,7 +54,7 @@ void AccGyro::accGyroInit(){
 }
 
 
-void AccGyro::accGyroLoop(){
+void IMU::imuLoop(){
   timer = millis();
   
   Vector acc = accelerometer.readNormalize();
@@ -135,7 +135,7 @@ void AccGyro::accGyroLoop(){
   str+=abs(iMagYaw);
 }
 
-float AccGyro::tiltCompensate(Vector mag, Vector normAccel){
+float IMU::tiltCompensate(Vector mag, Vector normAccel){
   // Pitch & Roll 
 
   float roll;
@@ -164,7 +164,7 @@ float AccGyro::tiltCompensate(Vector mag, Vector normAccel){
   return heading;
 }
 
-float AccGyro::tiltCompensate(Vector mag, float _pitch, float _roll){
+float IMU::tiltCompensate(Vector mag, float _pitch, float _roll){
   // Pitch & Roll 
 
   float roll;
@@ -193,7 +193,7 @@ float AccGyro::tiltCompensate(Vector mag, float _pitch, float _roll){
   return heading;
 }
 
-float AccGyro::correctAngle(float _heading){
+float IMU::correctAngle(float _heading){
   if (_heading < 0) { _heading += 2 * PI; }
   if (_heading > 2 * PI) { _heading -= 2 * PI; }
 

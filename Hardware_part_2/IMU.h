@@ -1,5 +1,5 @@
-#ifndef AccGyro_h
-#define AccGyro_h
+#ifndef IMU_h
+#define IMU_h
 
 #include <Arduino.h>
 
@@ -9,13 +9,13 @@
 #include <HMC5883L.h>
 #include <KalmanFilter.h>
 
-class AccGyro {
+class IMU {
 public:
-  AccGyro();
-  ~AccGyro();
+  IMU();
+  ~IMU();
   String str;
-  void accGyroLoop();
-  void accGyroInit();
+  void imuLoop();
+  void imuInit();
   
 private:
   L3G4200D gyroscope;
