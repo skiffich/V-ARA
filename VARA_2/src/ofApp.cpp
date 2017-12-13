@@ -43,6 +43,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+	ofDisableArbTex();
+	ofEnableDepthTest();
 	// Set background to black
 	ofBackground(0);
 	// Connect to arduino connected to any COM port with baud rate 57600
@@ -75,6 +77,8 @@ void ofApp::setup(){
 	ofAddListener(ard.EStringReceived, this, &ofApp::stringReceived);
 	// Setup clock_start
 	clock_start = clock();
+
+	m_image.loadImage("texture.png");
 }
 
 //--------------------------------------------------------------
@@ -93,26 +97,26 @@ void ofApp::convertReceivedString2ReceivedData(const string string)
 	// Convert accelerometer values
 	std::string sAccX = received.substr(1, 3);
 	stringstream sAccXstream(sAccX);
-	sAccXstream >> xAcc;
-	xAcc *= 5;
+	sAccXstream >> zAcc;
+	zAcc *= 5 * kZ;
 	std::string sAccY = received.substr(5, 3);
 	stringstream sAccYstream(sAccY);
-	sAccYstream >> yAcc;
-	yAcc *= 5;
+	sAccYstream >> xAcc;
+	xAcc *= 5 * kX;
 	std::string sAccZ = received.substr(9, 3);
 	stringstream sAccZstream(sAccZ);
-	sAccZstream >> zAcc;
-	zAcc *= 5;
+	sAccZstream >> yAcc;
+	yAcc *= 5 * kY;
 	// Convert gyroscope values
 	std::string sGyrX = received.substr(13, 4);
 	stringstream sGyrXstream(sGyrX);
-	sGyrXstream >> xGyr;
+	sGyrXstream >> zGyr; zGyr *= kZ;
 	std::string sGyrY = received.substr(18, 4);
 	stringstream sGyrYstream(sGyrY);
-	sGyrYstream >> yGyr;
+	sGyrYstream >> xGyr; zGyr *= kX;
 	std::string sGyrZ = received.substr(23, 4);
 	stringstream sGyrZstream(sGyrZ);
-	sGyrZstream >> zGyr;
+	sGyrZstream >> yGyr; yGyr -= 180; zGyr *= kY;
 	// Convert tensoresistors values
 	std::string sTen1 = received.substr(28, 2);
 	stringstream sTen1stream(sTen1);
@@ -127,9 +131,9 @@ void ofApp::convertReceivedString2ReceivedData(const string string)
 	stringstream sTen4stream(sTen4);
 	sTen4stream >> ten4;
 	//* Show converted values
-	cout << xAcc << " " << yAcc << " " << zAcc << " " << xGyr << " " <<
-		yGyr << " " << zGyr << " " << ten1 << " " << ten2 << " " <<
-		ten3 << " " << ten4 << endl; //*/
+	cout << xAcc << "\t" << yAcc << "\t" << zAcc << "\t" << xGyr << "\t" <<
+		yGyr << "\t" << zGyr << "\t" << ten1 << "\t" << ten2 << "\t" <<
+		ten3 << "\t" << ten4 << endl; //*/
 }
 
 //--------------------------------------------------------------
@@ -189,7 +193,6 @@ void ofApp::draw(){
 
 	// Set a start point in the center of the screen
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 40);
-
 	
 	// Rotate to the angle specified by the user
 	ofVec3f axis;
@@ -197,32 +200,50 @@ void ofApp::draw(){
 	curRot.getRotate(angle, axis);
 	ofRotate(angle, axis.x, axis.y, axis.z);
 
-	//ofPushMatrix();
+	
+
+	// Draw coordinate system
+	ofSetColor(ofColor::red);
+	ofDrawLine(0, 0, 0, 300, 0, 0);
+	ofSetColor(ofColor::blue);
+	ofDrawLine(0, 0, 0, 0, 300, 0);
+	ofSetColor(ofColor::yellow);
+	ofDrawLine(0, 0, 0, 0, 0, 300);
+
+	
+
+	ofPushMatrix();
+
+	ofTranslate(40, 40, 40);
 
 	// Rotate to the angle obtained from the gyroscope
 	ofRotateX(xGyr);
 	ofRotateY(yGyr);
 	ofRotateZ(zGyr);
 
-	// Draw coordinate system
-	ofSetColor(ofColor::red);
-	ofDrawLine(0, 0, 0, 100, 0, 0);
-	ofSetColor(ofColor::blue);
-	ofDrawLine(0, 0, 0, 0, 100, 0);
-	ofSetColor(ofColor::yellow);
-	ofDrawLine(0, 0, 0, 0, 0, 100);
-	// Draw gravity vector
+	// Draw box wit texture
+	ofSetColor(ofColor::white);
+	m_image.getTextureReference().bind();
+	ofDrawBox(0, 0, 0, 60, 40, 100);
+	m_image.getTextureReference().unbind();
+	// Draw gravity vecror
 	ofSetColor(ofColor::green);
-	ofDrawLine(0, 0, 0, xAcc, yAcc, zAcc);
+	ofDrawLine(10, 10, 10, 10 + xAcc, 10 + yAcc, 10 + zAcc);
 
-	//ofPopMatrix();
+	ofPopMatrix();
 	ofPopMatrix();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-	if (key == 'R')
-		bSetupArduino = false;
+	switch (key)
+	{
+	case 'R': bSetupArduino = false; ofLogNotice() << "Reset..."; break;
+	case 'C': ard.sendString("C"); ofLogNotice() << "Calibrating..."; break;
+	case 'X': kX *= -1; ofLogNotice() << "Invert X"; break;
+	case 'Y': kY *= -1; ofLogNotice() << "Invert Y"; break;
+	case 'Z': kZ *= -1; ofLogNotice() << "Invert Z"; break;
+	}
 }
 
 //--------------------------------------------------------------
