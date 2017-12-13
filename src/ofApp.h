@@ -29,6 +29,7 @@ private:
 	// Delay between transactions to arduino
 	clock_t clock_start;
 	bool	bSetupArduino = false;
+	bool	wasConnected = false;
 
 	// Received data
 	float	xAcc = 0,

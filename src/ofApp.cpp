@@ -62,6 +62,7 @@ void ofApp::setup(){
 				ofLogNotice() << ard.getFirmwareName();
 				ofLogNotice() << "firmata v" << ard.getMajorFirmwareVersion() << "." << ard.getMinorFirmwareVersion();
 				bSetupArduino = true;
+				wasConnected = true;
 				break;
 			}
 		}
@@ -88,6 +89,7 @@ void ofApp::stringReceived(const string & string) {
 // Convert received string to received data
 void ofApp::convertReceivedString2ReceivedData(const string string)
 {
+	//cout << string << endl;
 	// Convert accelerometer values
 	std::string sAccX = received.substr(1, 3);
 	stringstream sAccXstream(sAccX);
@@ -138,12 +140,46 @@ void ofApp::update(){
 	if (cur_clock > 0.05 && bSetupArduino) {
 		// reset clock_start
 		clock_start = clock();
-		// Send "N" to arduino
-		ard.sendString("N");
-		// Apdate arduino
-		ard.update();
+		try {
+			// Send "N" to arduino
+			ard.sendString("N");
+			// Apdate arduino
+			ard.update();
+		}
+		catch (...)
+		{
+			ofLogError() << "Connecting failed";
+			bSetupArduino = false;
+		}
 		// Convert received string to received data
 		convertReceivedString2ReceivedData(received);
+	}
+	else if (cur_clock > 0.05 && !bSetupArduino && wasConnected)
+	{
+		try
+		{
+			ofSerial serial;
+			vector <ofSerialDeviceInfo> deviceList = serial.getDeviceList();
+			for each (ofSerialDeviceInfo var in deviceList)
+			{
+				ofLogNotice() << "Connecting to " << var.getDeviceName();
+				ard.connect(var.getDeviceName(), 57600);
+				if (ard.isArduinoReady())
+				{
+					ofAddListener(ard.EStringReceived, this, &ofApp::stringReceived);
+					ofLogNotice() << "Connected to Arduino on " << var.getDeviceName();
+					ofLogNotice() << "Setup...";
+					ofLogNotice() << ard.getFirmwareName();
+					ofLogNotice() << "firmata v" << ard.getMajorFirmwareVersion() << "." << ard.getMinorFirmwareVersion();
+					bSetupArduino = true;
+					break;
+				}
+			}
+		}
+		catch (...)
+		{
+			ofLogError() << "Connecting failed";
+		}
 	}
 }
 
@@ -154,18 +190,19 @@ void ofApp::draw(){
 	// Set a start point in the center of the screen
 	ofTranslate(ofGetWidth() / 2, ofGetHeight() / 2, 40);
 
-	// Rotate to the angle obtained from the gyroscope
-	ofRotateX(xGyr);
-	ofRotateY(yGyr);
-	ofRotateZ(zGyr);
-
-	ofPushMatrix();
-
+	
 	// Rotate to the angle specified by the user
 	ofVec3f axis;
 	float angle;
 	curRot.getRotate(angle, axis);
 	ofRotate(angle, axis.x, axis.y, axis.z);
+
+	//ofPushMatrix();
+
+	// Rotate to the angle obtained from the gyroscope
+	ofRotateX(xGyr);
+	ofRotateY(yGyr);
+	ofRotateZ(zGyr);
 
 	// Draw coordinate system
 	ofSetColor(ofColor::red);
@@ -178,13 +215,14 @@ void ofApp::draw(){
 	ofSetColor(ofColor::green);
 	ofDrawLine(0, 0, 0, xAcc, yAcc, zAcc);
 
-	ofPopMatrix();
+	//ofPopMatrix();
 	ofPopMatrix();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	if (key == 'R')
+		bSetupArduino = false;
 }
 
 //--------------------------------------------------------------
