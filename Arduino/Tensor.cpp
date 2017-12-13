@@ -6,6 +6,7 @@ Tensor::Tensor(int pin, String letter) {
   this->pin = pin;
   this->letter += letter;
   counterMin = counterMax = sumMin = sumMax = 0;
+  pinMode(pin + 14, INPUT);
 }
 
 Tensor::~Tensor(){}
