@@ -46,9 +46,13 @@ private:
 	string received = "A000B000C000D0000E0000F0000G00H00I00J00K";
 	// Convert received string to received data
 	void convertReceivedString2ReceivedData(const string string);
+	float kX = 1, kY = 1, kZ = 1;
 
 	// Draw and rotate coordinate system
 	ofQuaternion curRot;
 	ofVec2f lastMouse;
 	float dampen = .4;
+
+	// Draw and rotate box with texture
+	ofImage m_image;
 };

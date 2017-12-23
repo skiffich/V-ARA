@@ -19,6 +19,9 @@ void stringCallback(char *myString)
   {
     Firmata.sendString(string);
   }
+  else if(str == "C"){
+    imu.imuCalib();
+  }
 }
 
 void setup() {
