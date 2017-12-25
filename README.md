@@ -8,6 +8,7 @@ Created by Brainstorm_Team Copyright 2016 License: GNU GPL v3 http://www.gnu.org
 <b>LINKS: </b>
 Github: https://github.com/skiffich/V-ARA 
 Executive: https://1drv.ms/f/s!ApAsseJ88mCxhPdWLangzhtP_uETrg
+Site: http://freakspace.xyz/
 
 <b>DISCLAIMER: </b>
 This software is furnished "as is", without technical support, and with no warranty, express or implied, as to its usefulness for any purpose.
@@ -43,11 +44,13 @@ run ProjectGenerator from openfameworks folder
 Create new project with ofxAssimpModelLoader addon
 replace in src project folder all files to files from github
 move data folder from git to your data folder and replace all files in it
+move arduino libraries to your arduino folder
 load arduino fimware to arduino board
 build aplication
 
 For executive:
 dowload folder from link below 
+move arduino libraries to your arduino folder
 load arduino fimware to arduino board
 run executive file
 
