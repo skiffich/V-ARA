@@ -1,169 +1,172 @@
 #include "IMU.h"
 
 IMU::IMU() {
-  froll = 1.0;
-  fpitch = 1.0;
-  fyaw = 1.0;
-  fAccX = 1.0;
-  fAccY = 1.0;
-  fAccZ = 1.0;
+  kalmanX = KalmanFilter(0.001, 0.003, 0.03);
+  kalmanY = KalmanFilter(0.001, 0.003, 0.03);
   
-  iAccX = 1;
-  iAccY = 1;
-  iAccZ = 1;
-  iPitch = 1;
-  iRoll = 1;
-  iYaw = 1;
-  iYawPrev = 1;
+  kalPitch = 0;
+  kalRoll = 0;
+  
+  accPitch = 0;
+  accRoll = 0;
+  
+  yaw = 0;
+  heading = 0;
 
-  offsetPitch = 0;
-  offsetRoll = 0;
+  iAccX = 0;
+  iAccY = 0;
+  iAccZ = 0;
 
-  offAccX = 0;
-  offAccY = 0;
-  offAccZ = 0;
+  offsetKalPitch = 0;
+  offsetKkalRoll = 0;
+
+  timer = 0;
 }
 
 IMU::~IMU(){}
 
 void IMU::imuInit(){
   // Initialize ADXL345
-  while(!accelerometer.begin()) delay(500);
- 
+  while(!accelerometer.begin())
+  {
+    delay(500);
+  }
   accelerometer.setRange(ADXL345_RANGE_2G);
   
   // Initialize L3G4200D
-  while(!gyroscope.begin(L3G4200D_SCALE_2000DPS, L3G4200D_DATARATE_400HZ_50)) delay(500);
+  while(!gyroscope.begin(L3G4200D_SCALE_2000DPS, L3G4200D_DATARATE_400HZ_50))
+  {
+    delay(500);
+  }
+  // Calibrate gyroscope. The calibration must be at rest.
+  // If you don't want calibrate, comment this line.
+  gyroscope.calibrate(100);
+  // Set threshold sensivty. Default 3.
+  // If you don't want use threshold, comment this line or set 0.
+  gyroscope.setThreshold(0);
 
   // Initialize Initialize HMC5883L
-  while (!compass.begin()) delay(500);
-
-  // Calibrate gyroscope
-  gyroscope.calibrate(100);
-
+  while (!compass.begin())
+  {
+    delay(500);
+  }
   // Set measurement range
   compass.setRange(HMC5883L_RANGE_1_3GA);
-
   // Set measurement mode
   compass.setMeasurementMode(HMC5883L_CONTINOUS);
-
   // Set data rate
   compass.setDataRate(HMC5883L_DATARATE_30HZ);
-
   // Set number of samples averaged
   compass.setSamples(HMC5883L_SAMPLES_8);
-
   // Set calibration offset. See HMC5883L_calibration.ino
-  compass.setOffset(0, 0); 
-
-  filter.begin(1);
+  compass.setOffset(0, 0);
 }
 
-float IMU::convertRawAcceleration(int aRaw) {
-  // since we are using 2G range
-  // -2g maps to a raw value of -32768
-  // +2g maps to a raw value of 32767
-  
-  float a = (aRaw * 2.0) / 32768.0;
-  return a;
-}
+float IMU::tiltCompensate(Vector mag, float pitch, float roll)
+{
+  // Some of these are used twice, so rather than computing them twice in the algorithem we precompute them before hand.
+  float cosRoll = cos(roll);
+  float sinRoll = sin(roll);  
+  float cosPitch = cos(pitch);
+  float sinPitch = sin(pitch);
 
-float IMU::convertRawGyro(int gRaw) {
-  // since we are using 250 degrees/seconds range
-  // -250 maps to a raw value of -32768
-  // +250 maps to a raw value of 32767
-  
-  float g = (gRaw * 250.0) / 32768.0;
-  return g;
+  // Tilt compensation
+  float Xh = mag.XAxis * cosPitch + mag.ZAxis * sinPitch;
+  float Yh = mag.XAxis * sinRoll * sinPitch + mag.YAxis * cosRoll - mag.ZAxis * sinRoll * cosPitch;
+
+  float heading = atan2(Yh, Xh);
+
+  return heading;
 }
 
 void IMU::imuLoop(){  
-  Vector acc = accelerometer.readNormalize();
-  Vector gyr = gyroscope.readNormalize();
-  Vector mag = compass.readNormalize();
 
-  float ax = convertRawAcceleration(acc.XAxis);
-  float ay = convertRawAcceleration(acc.YAxis);
-  float az = convertRawAcceleration(acc.ZAxis);
-  float gx = convertRawGyro(gyr.XAxis);
-  float gy = convertRawGyro(gyr.YAxis);
-  float gz = convertRawGyro(gyr.ZAxis);
+  //if(millis() - timer > 10) {
+    Vector acc = accelerometer.readNormalize();
+    Vector gyr = gyroscope.readNormalize();
+    Vector mag = compass.readNormalize();
+
+    // Save gyro data
+    gX = gyr.XAxis;
+    gY = gyr.YAxis;
+    gZ = gyr.ZAxis;
   
-  filter.updateIMU(gx, gy, gz, ax, ay, az);
-
-  // Low frequency filters
-  // if K less - then greater the compensation
-  float K = 0.1; 
-  // Roll LFF
-  float roll = filter.getRoll();
-  froll = (1-K)*froll + K*roll;
-  // Pitch LFF
-  float pitch = filter.getPitch();
-  fpitch = (1-K)*fpitch + K*pitch;
-  // Yaw LFF
-  float yaw = filter.getYaw();
-  fyaw = (1-K)*fyaw + K*yaw;
-
-  // Formatting Gyro data
-  iPitch = round(fpitch); if(iPitch > 180) iPitch=180;  if(iPitch < -180) iPitch=-180; iPitch -= offsetPitch; 
-  iRoll  = round(froll); if(iRoll > 180) iRoll=180;    if(iRoll < -9180) iRoll=-180; iRoll -= offsetRoll;
-  int  iYawCur   = round(fyaw);  //if(iYaw<0) iYaw %= -360;    if(iYaw>0) iYaw %= 360;
-  iYaw += iYawCur - iYawPrev;
-  if(iYaw < -999 || iYaw > 999)iYaw = 0;
-
-  // Gravity delete
-  // /*----------*/ 
+    // Calculate Pitch & Roll from accelerometer (deg)
+    accPitch = -(atan2(acc.XAxis, sqrt(acc.YAxis*acc.YAxis + acc.ZAxis*acc.ZAxis))*180.0)/M_PI;
+    accRoll  = (atan2(acc.YAxis, acc.ZAxis)*180.0)/M_PI;
+    
+    // Kalman filter
+    kalPitch = kalmanY.update(accPitch, gyr.YAxis) - offsetKalPitch;
+    kalRoll = kalmanX.update(accRoll, gyr.XAxis) - offsetKkalRoll;
   
-  // Formatting Acc data
-  iAccX = round(acc.XAxis) - offAccX; if(iAccX > 99) iAccX=99;  if(iAccX < -99) iAccX=-99;
-  iAccY = round(acc.YAxis) - offAccY; if(iAccY > 99) iAccY=99;  if(iAccY < -99) iAccY=-99;
-  iAccZ = round(acc.ZAxis) - offAccZ; if(iAccZ > 99) iAccZ=99;  if(iAccZ < -99) iAccZ=-99;
+    yaw = yaw + gyr.ZAxis*0.01;
+    if(yaw > 999) yaw = 0;
+    // Calculate heading
+    float heading = atan2(mag.YAxis, mag.XAxis);
+    // Set declination angle on your location and fix heading
+    // You can find your declination on: http://magnetic-declination.com/
+    // (+) Positive or (-) for negative
+    // For Bytom / Poland declination angle is 4'26E (positive)
+    // Formula: (deg + (min / 60.0)) / (180 / M_PI);
+    float declinationAngle = (4.0 + (26.0 / 60.0)) / (180 / M_PI);
+    heading += declinationAngle;
+    // Correct for heading < 0deg and heading > 360deg
+    if (heading < 0) heading += 2 * PI;
+    if (heading > 2 * PI)  heading -= 2 * PI;
+    heading = heading * 180/M_PI;
   
-  // Create string
-  str = "A";
-  if(iAccX<0)str+="-";else str+="0";
-  if(iAccX<10 && iAccX>-10)str+="0";
-  str+=abs(iAccX);
-
-  str += "B";
-  if(iAccY<0)str+="-";else str+="0";
-  if(iAccY<10 && iAccY>-10)str+="0";
-  str+=abs(iAccY);
-
-  str += "C";
-  if(iAccZ<0)str+="-";else str+="0";
-  if(iAccZ<10 && iAccZ>-10)str+="0";
-  str+=abs(iAccZ);
-
-  str += "D";
-  if(iPitch<0)str+="-";else str+="0";
-  if(iPitch<100 && iPitch>-100)str+="0";
-  if(iPitch<10  && iPitch>-10)str+="0";
-  str+=abs(iPitch);
-
-  str += "E";
-  if(iRoll<0)str+="-";else str+="0";
-  if(iRoll<100 && iRoll>-100)str+="0";
-  if(iRoll<10  && iRoll>-10)str+="0";
-  str+=abs(iRoll);
-
-  str += "F";
-  if(iYaw<0)str+="-";else str+="0";
-  if(iYaw<100 && iYaw>-100)str+="0";
-  if(iYaw<10  && iYaw>-10)str+="0";
-  str+=abs(iYaw);
-
-  iYawPrev = iYawCur;
+    int ikalPitch = round(kalPitch);
+    int ikalRoll = round(kalRoll);
+    int iyaw = round(yaw);
+  
+    // Gravity delete
+    // /*----------*/ 
+    
+    // Formatting Acc data
+    iAccX = round(acc.XAxis); if(iAccX > 99) iAccX=99;  if(iAccX < -99) iAccX=-99;
+    iAccY = round(acc.YAxis); if(iAccY > 99) iAccY=99;  if(iAccY < -99) iAccY=-99;
+    iAccZ = round(acc.ZAxis); if(iAccZ > 99) iAccZ=99;  if(iAccZ < -99) iAccZ=-99;
+    
+    // Create string
+    str = "A";
+    if(iAccX<0)str+="-";else str+="0";
+    if(iAccX<10 && iAccX>-10)str+="0";
+    str+=abs(iAccX);
+  
+    str += "B";
+    if(iAccY<0)str+="-";else str+="0";
+    if(iAccY<10 && iAccY>-10)str+="0";
+    str+=abs(iAccY);
+  
+    str += "C";
+    if(iAccZ<0)str+="-";else str+="0";
+    if(iAccZ<10 && iAccZ>-10)str+="0";
+    str+=abs(iAccZ);
+  
+    str += "D";
+    if(ikalPitch<0)str+="-";else str+="0";
+    if(ikalPitch<100 && ikalPitch>-100)str+="0";
+    if(ikalPitch<10  && ikalPitch>-10)str+="0";
+    str+=abs(ikalPitch);
+  
+    str += "E";
+    if(ikalRoll<0)str+="-";else str+="0";
+    if(ikalRoll<100 && ikalRoll>-100)str+="0";
+    if(ikalRoll<10  && ikalRoll>-10)str+="0";
+    str+=abs(ikalRoll);
+  
+    str += "F";
+    if(iyaw<0)str+="-";else str+="0";
+    if(iyaw<100 && iyaw>-100)str+="0";
+    if(iyaw<10  && iyaw>-10)str+="0";
+    str+=abs(iyaw);
+  
+    //timer = millis();}
 }
 
 void IMU::imuCalib(){
-  iYaw = 0;
-  offsetPitch = iPitch + offsetPitch;
-  offsetRoll = iRoll + offsetRoll;
-  /*
-  offAccX = iAccX + offAccX;
-  offAccY = iAccY + offAccY;
-  offAccZ = iAccZ + offAccZ;
-  */
+  yaw = 0;
+  offsetKalPitch = kalPitch + offsetKalPitch;
+  offsetKkalRoll = kalRoll + offsetKkalRoll;
 }
 

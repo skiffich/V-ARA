@@ -8,7 +8,6 @@
 #include <ADXL345.h>
 #include <HMC5883L.h>
 #include <KalmanFilter.h>
-#include <MadgwickAHRS.h>
 
 class IMU {
 public:
@@ -18,38 +17,36 @@ public:
   void imuLoop();
   void imuInit();
   void imuCalib();
+
+  double gX, gY, gZ;
   
 private:
   L3G4200D gyroscope;
   ADXL345 accelerometer;
   HMC5883L compass;
 
-  Madgwick filter;
+  float tiltCompensate(Vector mag, float pitch, float roll);
 
-  float convertRawGyro(int gRaw);
-  float convertRawAcceleration(int aRaw);
-
-  float froll;
-  float fpitch;
-  float fyaw;
-  float fAccX;
-  float fAccY;
-  float fAccZ;
+  KalmanFilter kalmanX;
+  KalmanFilter kalmanY;
   
+  float kalPitch;
+  float kalRoll;
+  
+  float accPitch;
+  float accRoll;
+  
+  float yaw;
+  float heading;
+
+  float offsetKalPitch;
+  float offsetKkalRoll;
+
   int iAccX;
   int iAccY;
   int iAccZ;
-  int iPitch;
-  int iRoll;
-  int iYaw;
-  int iYawPrev;
 
-  int offsetPitch;
-  int offsetRoll;
-
-  int offAccX;
-  int offAccY;
-  int offAccZ;
+  unsigned long timer;
 };
 
 #endif
